@@ -2,7 +2,7 @@ from typing import Generator, List
 
 import numpy as np
 
-from path_score.helpers import path_t
+from iac_planner.helpers import path_t
 
 
 def generate_paths(env, n=10, n_pts=20) -> Generator[path_t, None, None]:

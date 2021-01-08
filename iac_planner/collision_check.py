@@ -5,8 +5,8 @@ import math
 
 from std_msgs.msg import ColorRGBA
 
-from path_score.generate_markers import visualize
-from path_score.helpers import Env, path_t, state_t
+from iac_planner.generate_markers import visualize
+from iac_planner.helpers import Env, path_t, state_t
 
 
 # TODO: Fix docstrings

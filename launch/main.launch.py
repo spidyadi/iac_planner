@@ -4,7 +4,7 @@ from launch_ros.actions import Node
 from launch.substitutions import AnonName, ThisLaunchFileDir
 from launch.substitutions import PathJoinSubstitution as Join
 
-pkg = 'path_score'
+pkg = 'iac_planner'
 
 
 def generate_launch_description():

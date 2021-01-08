@@ -3,10 +3,10 @@ from typing import Iterable, Tuple, Callable, Optional
 
 import numpy as np
 
-from path_score.collision_check import CollisionChecker
-from path_score.generate_markers import visualize
-from path_score.generate_velocity_profile import generate_velocity_profile
-from path_score.helpers import Env, path_t
+from iac_planner.collision_check import CollisionChecker
+from iac_planner.generate_markers import visualize
+from iac_planner.generate_velocity_profile import generate_velocity_profile
+from iac_planner.helpers import Env, path_t
 
 
 # noinspection PyUnusedLocal

@@ -12,15 +12,15 @@ from rclpy.node import Node
 from std_msgs.msg import ColorRGBA
 from visualization_msgs.msg import Marker
 
-from path_score.generate_markers import visualize
-from path_score.generate_paths import generate_paths
-from path_score.helpers import Env, state_t
-from path_score.score_paths import score_paths
+from iac_planner.generate_markers import visualize
+from iac_planner.generate_paths import generate_paths
+from iac_planner.helpers import Env, state_t
+from iac_planner.score_paths import score_paths
 
 
 def main(args: Optional[Iterable[str]] = None):
     rclpy.init(args=args)
-    env: Env = Env(Node('path_score'))
+    env: Env = Env(Node('iac_planner'))
     info: Callable[[str], None] = env.nh.get_logger().info
     env.info = info
     info("Starting up...")
