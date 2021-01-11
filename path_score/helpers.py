@@ -24,7 +24,8 @@ class VelParams:
 class CollisionParams:
     circle_offset = 0
     circle_radii = 1
-    growth_factor = 0
+    growth_factor_a = 0
+    growth_factor_b = 0
 
 
 state_t = TypeVar('state_t')  # np.ndarray[[3], float]

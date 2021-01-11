@@ -18,7 +18,10 @@ class CollisionChecker:
         params = env.collision_params
         self._circle_offset = params.circle_offset
         self._circle_radii = params.circle_radii
-        self._growth_factor = params.growth_factor
+        self._growth_factor_a = params.growth_factor_a
+        self._growth_factor_b = params.growth_factor_b
+        self.other_vech_current_vel = 0
+        self.other_vech_prev_vel = 0
         self._obstacles = env.obstacles
         self._time_step = time_step
         self._path_length = path_length
@@ -37,7 +40,7 @@ class CollisionChecker:
                       color=ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0))
 
             self._other_vehicle_paths[i] = vehicle_path
-
+        self.other_vech_current_vel = other_vehicle_states[0][3]
         # Takes in a set of obstacle borders and path waypoints and returns
         # a boolean collision check array that tells if a path has an obstacle
         # or not
@@ -163,14 +166,16 @@ class CollisionChecker:
                     self._other_vehicle_paths[k][2][j])
 
                 # calculating if any collisions occur
+                growth_factor = self._growth_factor_b + self._growth_factor_a * (self.other_vech_current_vel - self.other_vech_prev_vel)/self.other_vech_current_vel
                 collision_dists = scipy.spatial.distance.cdist(other_circle_locations, ego_circle_locations)
                 collision_dists = np.subtract(collision_dists,
                                               self._circle_radii *
-                                              (2 + self._growth_factor * time_step * (j + 1)))
+                                              (2 + growth_factor * time_step * (j + 1)))
 
                 if np.any(collision_dists < 0):
-                    return False
+                    return False 
 
+        self.other_vech_prev_vel = self.other_vech_current_vel
         return True
 
     def check_collisions(self, path: path_t):
