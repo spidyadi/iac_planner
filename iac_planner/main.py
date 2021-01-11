@@ -67,8 +67,21 @@ def main(args: Optional[Iterable[str]] = None):
                 env.obstacles
 
                 # TODO: Load dynamic vehicles
-                env.other_vehicle_states
-
+                other_vehicle_state = connector.get_input("radarFSub::radarFReader")
+                other_vehicle_state.wait()
+                other_vehicle_state.take()
+                
+                env.other_vehicle_states = np.zeros(1, 4)
+                
+                for other_vehicle_state in vehicle_State.samples.valid_data_iter:
+                    targetsArray =  oppenentState['targetsArray']
+                    x = targetsArray['posXInChosenRef']
+                    y = targetsArray['posYInChosenRef']
+                    yaw = targetsArray['posHeadingInChosenRef']
+                    v = targetsArray['absoluteSpeedX']
+                    env.other_vehicle_states[0] = np.array([x,y,yaw,v])
+                
+                
                 # TODO: Load track boundaries
                 # env.track_boundry_poly
 
