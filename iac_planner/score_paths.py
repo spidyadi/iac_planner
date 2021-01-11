@@ -8,11 +8,6 @@ from iac_planner.generate_markers import visualize
 from iac_planner.generate_velocity_profile import generate_velocity_profile
 from iac_planner.helpers import Env, path_t
 
-# noinspection PyUnusedLocal
-def obstacle_at(env: Env, path: path_t, i: int) -> bool:
-    # TODO: Implement
-    return False
-
 
 def slope(path: path_t, i: int) -> float:
     return np.arctan2(path[i + 1][1] - path[i][1], path[i + 1][0] - path[i][0])
@@ -40,10 +35,6 @@ def score_paths(env: Env, paths: Iterable[path_t], max_path_len: Optional[int] =
 
         for j in range(len(path)):
             pt = path[j]
-
-            if obstacle_at(env, path, j):
-                cost += +inf
-                break
 
             # Shift to the 'closest' segment of the path
             # `get_normal(env.path, global_path_index)(*pt) > 0`
