@@ -1,7 +1,7 @@
 from setuptools import setup
 from glob import glob
 
-package_name = 'path_score'
+package_name = 'iac_planner'
 
 setup(
     name=package_name,
@@ -26,7 +26,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'main = path_score.main:main',
+            'main = iac_planner.main:main',
         ],
     },
 )

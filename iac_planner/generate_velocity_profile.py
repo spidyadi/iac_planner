@@ -1,6 +1,6 @@
 import numpy as np
 
-from path_score.helpers import Env, path_t
+from iac_planner.helpers import Env, path_t
 
 
 def generate_velocity_profile(env: Env, path: path_t) -> np.ndarray:

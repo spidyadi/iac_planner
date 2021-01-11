@@ -1,10 +1,12 @@
 ```bash
-colcon build --symlink-install --packages-up-to path_score
-ros2 launch path_score main.launch.py
+colcon build --symlink-install --packages-up-to iac_planner
+ros2 launch iac_planner main.launch.py
 ```
 
 requires colcon, ros2, rviz2, numpy, and scipy.spatial
 
+For [Team-Abhiyaan](http://github.com/Team-Abhiyaan/)
+
 uses [spidyadi/Collision_Checker](https://github.com/spidyadi/Collision_Checker)
 
-For [Team-Abhiyaan](http://github.com/Team-Abhiyaan/)
+Extends [surajRathi/path_score](http://github.com/surajRathi/path_score)
