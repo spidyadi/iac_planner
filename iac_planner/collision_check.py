@@ -7,6 +7,7 @@ from std_msgs.msg import ColorRGBA
 
 from iac_planner.generate_markers import visualize
 from iac_planner.helpers import Env, path_t, state_t
+from iac_planner.generate_velocity_profile import generate_velocity_profile
 
 
 # TODO: Fix docstrings
@@ -25,29 +26,66 @@ class CollisionChecker:
         self._obstacles = env.obstacles
         self._time_step = time_step
         self._path_length = path_length
+        global other_vehicle_states
         other_vehicle_states = env.other_vehicle_states
         self._other_vehicle_paths = np.zeros((len(other_vehicle_states), 3, path_length), dtype=float)
+        self._env = env
 
-        for i in range(len(self._other_vehicle_paths)):
-            vehicle_state: state_t = other_vehicle_states[i]
-            vehicle_path = np.zeros((3, path_length), dtype=float)
+        # for i in range(len(self._other_vehicle_paths)):
+        #     vehicle_state: state_t = other_vehicle_states[i]
+        #     vehicle_path = np.zeros((3, path_length), dtype=float)
 
-            time = np.arange(1, path_length + 1)  # , 1)
-            vehicle_path[0] = time_step * vehicle_state[3] * math.cos(vehicle_state[2]) * time + vehicle_state[0]
-            vehicle_path[1] = time_step * vehicle_state[3] * math.sin(vehicle_state[2]) * time + vehicle_state[1]
-            vehicle_path[2] = vehicle_state[2]
-            visualize(env.m_pub, env.nh.get_clock(), 75 + i, vehicle_path.T[:, :2],
-                      color=ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0))
+        #     time = np.arange(1, path_length + 1)  # , 1)
+        #     vehicle_path[0] = time_step * vehicle_state[3] * math.cos(vehicle_state[2]) * time + vehicle_state[0]
+        #     vehicle_path[1] = time_step * vehicle_state[3] * math.sin(vehicle_state[2]) * time + vehicle_state[1]
+        #     vehicle_path[2] = vehicle_state[2]
+        #     visualize(env.m_pub, env.nh.get_clock(), 75 + i, vehicle_path.T[:, :2],
+        #               color=ColorRGBA(r=1.0, g=1.0, b=1.0, a=1.0))
 
-            self._other_vehicle_paths[i] = vehicle_path
+        #     self._other_vehicle_paths[i] = vehicle_path
+
         self.other_vech_current_vel = other_vehicle_states[0][3]
+
         # Takes in a set of obstacle borders and path waypoints and returns
         # a boolean collision check array that tells if a path has an obstacle
         # or not
 
+    # generate time steps for single path
+    def generate_time_step(self, path, velocity_profile):
+
+        time_step = np.zeros((len(velocity_profile),), dtype = float)
+
+        for i in range(len(velocity_profile) - 1):
+            s = np.sqrt((path[i+1][0] - path[i][0])**2 + (path[i+1][1] - path[i][1])**2)
+            time_step[i+1] = (2*s)/(velocity_profile[i+1] + velocity_profile[i])
+
+        return time_step
+
+
+    def generate_other_vehicle_paths(self, time_step, other_vehicle_states):
+
+        other_vehicle_paths = np.zeros((len(other_vehicle_states), 3, len(time_step)), dtype=float)
+
+        for i in range(len(other_vehicle_paths)):
+            vehicle_state = other_vehicle_states[i]
+            vehicle_path = np.zeros((3, len(time_step)), dtype = float)
+
+            vehicle_path[0][0] = vehicle_state[0]
+            vehicle_path[1][0] = vehicle_state[1]
+            vehicle_path[2][0] = vehicle_state[2]
+
+            for j in range(1, len(time_step)):
+                vehicle_path[0][j] = vehicle_path[0][j-1] + time_step[j]*vehicle_state[3]*math.cos(vehicle_state[2])
+                vehicle_path[1][j] = vehicle_path[1][j-1] + time_step[j]*vehicle_state[3]*math.sin(vehicle_state[2])
+                vehicle_path[2][j] = vehicle_state[2]
+
+            other_vehicle_paths[i] = vehicle_path
+
+        return other_vehicle_paths
+
+
     def _static_collision_check(self, path: path_t):
         """Returns a bool array on whether each path is collision free.
-
         args:
             paths: A list of paths in the global frame.
                 A path is a list of points of the following format:
@@ -64,7 +102,6 @@ class CollisionChecker:
                          ...,
                          [xn, yn]]
                 , where n is the number of obstacle points and units are [m, m]
-
         returns:
             collision_check_array: A list of boolean values which classifies
                 whether the path is collision-free (true), or not (false). The
@@ -107,7 +144,6 @@ class CollisionChecker:
 
     def _dynamic_collision_check(self, path: path_t):
         """ Returns a bool array on whether each path is collision free.
-
         args:
                 paths: A list of paths in the global frame.
                     A path is a list of points of the following format:
@@ -131,13 +167,17 @@ class CollisionChecker:
                         Example of accessing the ith car's speed would be:
                             other_vehicle_states[i][3]
                 look_ahead_time: The look ahead time to which the paths have been generated (s)
-
             returns:
                 collision_check_array: A list of boolean values which classifies
                     whether the path is collision-free (true), or not (false). The
                     ith index in the collision_check_array list corresponds to the
                     ith path in the paths list.
         """
+        velocity_profile = generate_velocity_profile(self._env, path)
+        self._time_step = self.generate_time_step(path, velocity_profile)
+        global other_vehicle_states
+        self._other_vehicle_paths = self.generate_other_vehicle_paths(self._time_step, other_vehicle_states)
+
         if len(self._other_vehicle_paths) == 0:
             return True
 
@@ -170,7 +210,7 @@ class CollisionChecker:
                 collision_dists = scipy.spatial.distance.cdist(other_circle_locations, ego_circle_locations)
                 collision_dists = np.subtract(collision_dists,
                                               self._circle_radii *
-                                              (2 + growth_factor * time_step * (j + 1)))
+                                              (2 + growth_factor * np.sum(time_step[:j])))
 
                 if np.any(collision_dists < 0):
                     return False 
