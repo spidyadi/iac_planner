@@ -8,7 +8,6 @@ from iac_planner.generate_markers import visualize
 from iac_planner.generate_velocity_profile import generate_velocity_profile
 from iac_planner.helpers import Env, path_t
 
-
 # noinspection PyUnusedLocal
 def obstacle_at(env: Env, path: path_t, i: int) -> bool:
     # TODO: Implement

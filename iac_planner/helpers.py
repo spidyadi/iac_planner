@@ -1,9 +1,7 @@
 from dataclasses import dataclass
 from typing import TypeVar, Callable, List
-
 import numpy as np
-from rclpy.node import Node
-from rclpy.publisher import Publisher
+
 
 
 @dataclass
@@ -24,7 +22,8 @@ class VelParams:
 class CollisionParams:
     circle_offset = 0
     circle_radii = 1
-    growth_factor = 0
+    growth_factor_a = 0
+    growth_factor_b = 0
 
 
 state_t = TypeVar('state_t')  # np.ndarray[[3], float]
@@ -33,8 +32,8 @@ path_t = TypeVar('path_t')  # np.ndarray[[-1, 2], float]
 
 @dataclass
 class Env:
-    nh: Node
-    m_pub: Publisher = None
+    # nh: Node
+    # m_pub: Publisher = None
 
     weights: Weights = Weights()
     vel_params: VelParams = VelParams()

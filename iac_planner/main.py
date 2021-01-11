@@ -5,6 +5,7 @@ Visualizes the CTE of some simple paths using rviz2
 import sys
 import threading
 from typing import Optional, Iterable, Callable
+import logging
 
 import numpy as np
 import rclpy
@@ -17,11 +18,13 @@ from iac_planner.generate_paths import generate_paths
 from iac_planner.helpers import Env, state_t
 from iac_planner.score_paths import score_paths
 
+_logger = logging.getLogger(__name__)
+
 
 def main(args: Optional[Iterable[str]] = None):
     rclpy.init(args=args)
     env: Env = Env(Node('iac_planner'))
-    info: Callable[[str], None] = env.nh.get_logger().info
+    info: Callable[[str], None] = _logger.info
     env.info = info
     info("Starting up...")
 
