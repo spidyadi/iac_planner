@@ -3,37 +3,24 @@
 Visualizes the CTE of some simple paths using rviz2
 """
 import sys
-import threading
 from typing import Optional, Iterable, Callable
 import logging
 
 import numpy as np
-import rclpy
-from rclpy.node import Node
-from std_msgs.msg import ColorRGBA
-from visualization_msgs.msg import Marker
+# from std_msgs.msg import ColorRGBA
 
-from iac_planner.generate_markers import visualize
+# from iac_planner.generate_markers import visualize
 from iac_planner.generate_paths import generate_paths
 from iac_planner.helpers import Env, state_t
 from iac_planner.score_paths import score_paths
 
-_logger = logging.getLogger(__name__)
-
-
 def main(args: Optional[Iterable[str]] = None):
-    rclpy.init(args=args)
-    env: Env = Env(Node('iac_planner'))
-    info: Callable[[str], None] = _logger.info
+    env: Env = Env()
+
+    logging.basicConfig(level=logging.NOTSET)
+    info: Callable[[str], None] = logging.getLogger(__name__).info
     env.info = info
     info("Starting up...")
-
-    # For Rate objects to work
-    thread = threading.Thread(target=rclpy.spin, args=(env.nh,), daemon=True)
-    thread.start()
-
-    # Initialize Publishers and Subscribers
-    env.m_pub = env.nh.create_publisher(Marker, 'paths', 50)
 
     # Dummy Global Path
     from itertools import chain
@@ -49,24 +36,31 @@ def main(args: Optional[Iterable[str]] = None):
     # Dummy other vehicle
     env.other_vehicle_states = [np.array([3, 5, - np.pi / 3, 0.3])]
 
-    visualize(env.m_pub, env.nh.get_clock(), 52, env.obstacles, color=ColorRGBA(g=1.0, a=1.0))
+    # visualize(env.m_pub, env.nh.get_clock(), 52, env.obstacles, color=ColorRGBA(g=1.0, a=1.0))
 
-    r = env.nh.create_rate(1)
-    while rclpy.ok() and len(env.path) > 10:
+    try:
+        run(env)
+    except KeyboardInterrupt:
+        info("Keyboard interrupt")
+
+
+def run(env: Env):
+    info = env.info
+    while len(env.path) > 10:
         # Remove passed points
         # Note fails if robot and path have very different orientations, check for that
 
         update_global_path(env)
 
-        # Publish Global Path and Current Position
-        visualize(env.m_pub, env.nh.get_clock(), 50, [env.state[:2]], scale=0.5,
-                  color=ColorRGBA(r=1.0, b=1.0, a=1.0))
+        # # Publish Global Path and Current Position
+        # visualize(env.m_pub, env.nh.get_clock(), 50, [env.state[:2]], scale=0.5,
+        #           color=ColorRGBA(r=1.0, b=1.0, a=1.0))
+        #
+        # visualize(env.m_pub, env.nh.get_clock(), 51, env.path)
 
-        visualize(env.m_pub, env.nh.get_clock(), 51, env.path)
-
-        for i, state in enumerate(env.other_vehicle_states):
-            visualize(env.m_pub, env.nh.get_clock(), 52 + 1 + i, [state[:2]], scale=0.5,
-                      color=ColorRGBA(r=1.0, g=1.0, a=1.0))
+        # for i, state in enumerate(env.other_vehicle_states):
+        #     visualize(env.m_pub, env.nh.get_clock(), 52 + 1 + i, [state[:2]], scale=0.5,
+        #               color=ColorRGBA(r=1.0, g=1.0, a=1.0))
 
         paths = generate_paths(env, n=10, n_pts=20)
 
@@ -77,17 +71,13 @@ def main(args: Optional[Iterable[str]] = None):
         else:
             info("No trajectory found.")
 
-        r.sleep()
+
 
         # Dummy state update
         #            [ x , y , theta, vel]
         env.state += [0.5, 0.1, 0.05, 0.1]
         for state in env.other_vehicle_states:
             state[:2] += state[3] * np.array([np.cos(state[2]), np.sin(state[2])])
-
-    env.nh.destroy_node()
-    rclpy.shutdown()
-    thread.join()
 
 
 def update_global_path(env: Env):
