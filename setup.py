@@ -7,16 +7,9 @@ setup(
     name=package_name,
     version='0.0.0',
     packages=[package_name],
-    # data_files=[
-    #     ('share/ament_index/resource_index/packages',
-    #      ['resource/' + package_name]),  # Empty file to stop colcon complaints
-
-    #     ('share/' + package_name, glob('launch/*.launch.py')),
-
-    #     ('share/' + package_name, glob('rviz/*.rviz')),
-
-    #     ('share/' + package_name, ['package.xml']),
-    # ],
+    data_files=[
+        (['share/' + package_name], ['resources/RtiSCADE_DS_Controller_ego1.xml'])
+    ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='suraj',
